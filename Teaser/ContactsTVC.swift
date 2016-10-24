@@ -25,8 +25,6 @@ class ContactsTVC: UITableViewController
     var userSelection = (contactsCategory: -1, isConfirmed: false)
     let tableHeaders: [String] = ["No Phone Numbers", "No Names", "Eligible Contacts", "Empty Contacts"]
     
-    let waitScreen: UIActivityIndicatorView = UIActivityIndicatorView()
-    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -34,11 +32,6 @@ class ContactsTVC: UITableViewController
         initiateArray()
         
         checkContactsAccess()
-        
-        self.view.addSubview(waitScreen)
-        waitScreen.hidesWhenStopped = true
-        waitScreen.center = self.view.center
-        waitScreen.activityIndicatorViewStyle = .whiteLarge
         
         tableView.tableFooterView = UIView(frame: .zero)
     }
@@ -84,13 +77,10 @@ class ContactsTVC: UITableViewController
             
             if error != nil
             {
-                print("Error with contacts")
                 print(error!.localizedDescription)
                 return
             }
-            
-            print("Contacts result: \(result)")
-            
+                        
             self.getAllContacts()
         }
     }
@@ -144,6 +134,13 @@ class ContactsTVC: UITableViewController
     {
         if userSelection.isConfirmed
         {
+            let waitScreen: UIActivityIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+            waitScreen.hidesWhenStopped = true
+            waitScreen.center = self.view.center
+            waitScreen.color = .black
+            
+            self.view.addSubview(waitScreen)
+            
             waitScreen.startAnimating()
             
             for thisContact in allContacts[userSelection.contactsCategory]
@@ -155,7 +152,7 @@ class ContactsTVC: UITableViewController
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
-                self.waitScreen.stopAnimating()
+                waitScreen.stopAnimating()
             }
         }
     }
@@ -174,7 +171,6 @@ class ContactsTVC: UITableViewController
         }
         catch let error
         {
-            print("Error deleting contact")
             print(error.localizedDescription)
         }
     }

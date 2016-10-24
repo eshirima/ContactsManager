@@ -5,7 +5,7 @@
 	<key>NSContactsUsageDescription</key>
 	<string>Access required to clean up your contacts</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>en_US</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
