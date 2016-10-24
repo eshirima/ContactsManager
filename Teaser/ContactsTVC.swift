@@ -15,7 +15,8 @@ class ContactsTVC: UITableViewController
     
     let contactStore: CNContactStore = CNContactStore()
     
-    let tableHeaders: [String] = ["Empty Contacts", "No Phone Numbers", "The Rest"]
+    var numberOfHeaders: Int = 0
+    let tableHeaders: [String] = ["No Phone Numbers", "No Names", "Eligible Contacts", "Empty Contacts"]
     
     override func viewDidLoad()
     {
@@ -38,6 +39,8 @@ class ContactsTVC: UITableViewController
         for _ in 0..<tableHeaders.count
         {
             allContacts.append([])
+            
+            numberOfHeaders += 1
         }
     }
     
@@ -80,10 +83,6 @@ class ContactsTVC: UITableViewController
     
     func getAllContacts()
     {
-//        let keys = [CNContactFormatter.descriptorForRequiredKeys(for: .fullName)]
-        
-//        let keys = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactEmailAddressesKey, CNContactPhoneNumbersKey]
-        
         let request = CNContactFetchRequest(keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
         
         do
@@ -93,19 +92,30 @@ class ContactsTVC: UITableViewController
                 print(contact)
                 print("Contact GN: \(contact.givenName)")
                 
+//                ["No Phone Numbers", "No Names", "The Rest", "Empty Contacts"]
+                
                 if contact.isUseless
+                {
+                    self.allContacts[self.numberOfHeaders - 1].append(contact)
+                }
+                else if contact.hasNoPhoneNumber
                 {
                     self.allContacts[0].append(contact)
                 }
-                else
+                else if contact.hasNoName
                 {
                     self.allContacts[1].append(contact)
                 }
+                else
+                {
+                    self.allContacts[self.numberOfHeaders - 2].append(contact)
+                }
             })
         }
-        catch
+        catch let error
         {
             print("Unable to fetch contacts")
+            print(error.localizedDescription)
         }
         
         DispatchQueue.main.async {
@@ -126,11 +136,6 @@ extension ContactsTVC
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-//        if section == 0 // empty contacts
-//        {
-//            return emptyContacts.count
-//        }
-        
         return allContacts[section].count
     }
     
@@ -171,6 +176,16 @@ extension CNContact
     var hasNoPhoneNumber: Bool
     {
         if !self.givenName.isEmpty && self.phoneNumbers.isEmpty
+        {
+            return true
+        }
+        
+        return false
+    }
+    
+    var hasNoName: Bool
+    {
+        if self.givenName.isEmpty
         {
             return true
         }
