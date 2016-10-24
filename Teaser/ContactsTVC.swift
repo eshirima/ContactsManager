@@ -264,31 +264,16 @@ extension CNContact
 {
     var isUseless: Bool
     {
-        if self.givenName.isEmpty && self.phoneNumbers.isEmpty && self.emailAddresses.isEmpty
-        {
-            return true
-        }
-        
-        return false
+        return self.givenName.isEmpty && self.phoneNumbers.isEmpty && self.emailAddresses.isEmpty
     }
     
     var hasNoPhoneNumber: Bool
     {
-        if !self.givenName.isEmpty && self.phoneNumbers.isEmpty
-        {
-            return true
-        }
-        
-        return false
+        return !self.givenName.isEmpty && self.phoneNumbers.isEmpty
     }
     
     var hasNoName: Bool
     {
-        if self.givenName.isEmpty
-        {
-            return true
-        }
-        
-        return false
+        return self.givenName.isEmpty
     }
 }
