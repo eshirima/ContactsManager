@@ -25,6 +25,8 @@ class ContactsTVC: UITableViewController
     var userSelection = (contactsCategory: -1, isConfirmed: false)
     let tableHeaders: [String] = ["No Phone Numbers", "No Names", "Eligible Contacts", "Empty Contacts"]
     
+    let waitScreen: UIActivityIndicatorView = UIActivityIndicatorView()
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -32,6 +34,11 @@ class ContactsTVC: UITableViewController
         initiateArray()
         
         checkContactsAccess()
+        
+        self.view.addSubview(waitScreen)
+        waitScreen.hidesWhenStopped = true
+        waitScreen.center = self.view.center
+        waitScreen.activityIndicatorViewStyle = .whiteLarge
         
         tableView.tableFooterView = UIView(frame: .zero)
     }
@@ -135,10 +142,25 @@ class ContactsTVC: UITableViewController
     
     func deleteContacts()
     {
-        
+        if userSelection.isConfirmed
+        {
+            waitScreen.startAnimating()
+            
+            for thisContact in allContacts[userSelection.contactsCategory]
+            {
+                delete(contact: thisContact)
+            }
+            
+            allContacts[userSelection.contactsCategory].removeAll(keepingCapacity: false)
+            
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.waitScreen.stopAnimating()
+            }
+        }
     }
     
-    func delete(contact: CNContact)
+    private func delete(contact: CNContact)
     {
         let saveRequest: CNSaveRequest = CNSaveRequest()
         let mutableContact = contact.mutableCopy() as! CNMutableContact
