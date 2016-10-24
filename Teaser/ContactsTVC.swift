@@ -9,6 +9,12 @@
 import UIKit
 import Contacts
 
+// TOTAL CONTACTS: 2991
+// No Phone Numbers: 800
+// No Names: 56
+// Eligible: 430
+// Useless: 1705
+
 class ContactsTVC: UITableViewController
 {
     var allContacts: [[CNContact]] = [[CNContact]]()
@@ -16,6 +22,7 @@ class ContactsTVC: UITableViewController
     let contactStore: CNContactStore = CNContactStore()
     
     var numberOfHeaders: Int = 0
+    var userSelection = (contactsCategory: -1, isConfirmed: false)
     let tableHeaders: [String] = ["No Phone Numbers", "No Names", "Eligible Contacts", "Empty Contacts"]
     
     override func viewDidLoad()
@@ -90,7 +97,6 @@ class ContactsTVC: UITableViewController
             try self.contactStore.enumerateContacts(with: request, usingBlock: { (contact: CNContact, stop: UnsafeMutablePointer<ObjCBool>) in
                 
                 print(contact)
-                print("Contact GN: \(contact.givenName)")
                 
 //                ["No Phone Numbers", "No Names", "The Rest", "Empty Contacts"]
                 
@@ -120,11 +126,86 @@ class ContactsTVC: UITableViewController
         
         DispatchQueue.main.async {
             self.tableView.reloadData()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: {
+                self.presentUserWithOptions()
+            })
+        }
+    }
+    
+    func deleteContacts()
+    {
+        
+    }
+    
+    func delete(contact: CNContact)
+    {
+        let saveRequest: CNSaveRequest = CNSaveRequest()
+        let mutableContact = contact.mutableCopy() as! CNMutableContact
+        
+        saveRequest.delete(mutableContact)
+        
+        do
+        {
+            try contactStore.execute(saveRequest)
+            print("Contact Successfully Deleted")
+        }
+        catch let error
+        {
+            print("Error deleting contact")
+            print(error.localizedDescription)
+        }
+    }
+    
+    func presentUserWithOptions()
+    {
+        let alertMenu: UIAlertController = UIAlertController(title: nil, message: "Choose Category", preferredStyle: .actionSheet)
+        
+        let deleteEmptyContactsAction: UIAlertAction = UIAlertAction(title: "Empty Contacts", style: .destructive) { (result: UIAlertAction) in
+            
+            self.userSelection = (self.numberOfHeaders - 1, false)
+            self.confirmDeletion()
         }
         
-        print("Contacts size: \(allContacts.count)")
+        let deleteNoPhoneNumbersAction: UIAlertAction = UIAlertAction(title: "No Phone Numbers", style: .destructive) { (result: UIAlertAction) in
+            
+            self.userSelection = (0, false)
+            self.confirmDeletion()
+        }
+        
+        let deleteNoNamesAction: UIAlertAction = UIAlertAction(title: "No Names", style: .destructive) { (result: UIAlertAction) in
+            
+            self.userSelection = (1, false)
+            self.confirmDeletion()
+        }
+        
+        let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertMenu.addAction(deleteEmptyContactsAction)
+        alertMenu.addAction(deleteNoPhoneNumbersAction)
+        alertMenu.addAction(deleteNoNamesAction)
+        alertMenu.addAction(cancelAction)
+        
+        present(alertMenu, animated: true, completion: nil)
     }
-
+    
+    func confirmDeletion()
+    {
+        let confirmAlert: UIAlertController = UIAlertController(title: "Confirm", message: "Are you sure you want to continue?", preferredStyle: .alert)
+        
+        let deleteAction: UIAlertAction = UIAlertAction(title: "Delete", style: .destructive) { (result: UIAlertAction) in
+            
+            self.userSelection.isConfirmed = true
+            self.deleteContacts()
+        }
+        
+        let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .default, handler: nil)
+        
+        confirmAlert.addAction(deleteAction)
+        confirmAlert.addAction(cancelAction)
+        
+        present(confirmAlert, animated: true, completion: nil)
+    }
 }
 
 extension ContactsTVC
